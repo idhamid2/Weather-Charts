@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temperature-Forecasting</title>
+    <style>
+ 
+svg text {
+            fill: purple;
+            font: 11px sans-serif;
+            text-anchor: end;
+         }
+
+
+
+
+  
+    </style>
+</head>
+
+    <body>   
+        <div> 
+            <h1> Weather Forecasting System</h1>
+            <p>Following chart will show the Temperature forecast of next 5-days of the Paris city.</p>
+        </div>
+    <svg></svg>   
+    <script src="https://d3js.org/d3.v4.min.js"></script> 
+    
+<script>
+
+
+
+    
+var api = 'https://api.openweathermap.org/data/2.5/forecast?q=Paris&appid=da45f32ccf162d2c6b6f1c72b533549a';
+
+document.addEventListener("DOMContentLoaded", function(event){   
+fetch(api)
+.then(function(response){ 
+return response.json(); 
+})     
+.then(function(data) {          //DO SOMETHING WITH DATA       
+    var parsedData = parseData(data);
+    drawChart(parsedData);
+
+})});
+
+
+function parseData(data){   
+    var arr = [];   
+    for (i = 0; i<data.list.length; i =i+8) {  
+        //console.log("Before passing the date" + data.list [i].dt_txt);
+        //console.log("Before passing the date" + data.list [i].main.temp);
+    arr.push({            
+    date: new Date (data.list [i].dt_txt), //date            
+    value: +data.list [i].main.temp //convert string to number         
+    });   
+    }   
+    console.log(arr);
+    return arr;
+ }
+
+function drawChart(data) {
+
+var svgWidth = 600, svgHeight = 400;   
+var margin = { top: 20, right: 20, bottom: 30, left: 50 };   
+var width = svgWidth - margin.left - margin.right;   
+var height = svgHeight - margin.top - margin.bottom;
+var svg = d3.select('svg')     
+.attr("width", svgWidth)     
+.attr("height", svgHeight);
+
+var g = svg.append("g")   
+.attr("transform","translate(" + margin.left + "," + margin.top + ")");
+
+var x = d3.scaleTime().rangeRound([0, width]);
+var y = d3.scaleLinear().rangeRound([height, 0]);
+
+
+
+var line = d3.line()   
+.x(function(d) { return x(d.date)})   
+.y(function(d) { return y(d.value)})   
+x.domain(d3.extent(data, function(d) {
+ return d.date }));   
+y.domain(d3.extent(data, function(d) { 
+ return d.value }));
+
+g.append("g")   
+.attr("transform", "translate(0," + height + ")")   
+.call(d3.axisBottom(x))   .select(".domain")   
+
+
+g.append("g")   
+.call(d3.axisLeft(y))   
+.append("text")   
+.attr("fill", "#000")   
+.attr("transform", "rotate(-90)")   
+.attr("y", 6)   .attr("dy", "0.71em")   
+
+
+
+g.append("text")
+ .attr("transform", "translate(" + (width / 2) + " ," + (height + margin.bottom) + ")")
+ .style("text-anchor", "middle")
+ .text("Date");
+		
+g.append("text")
+.attr("transform", "rotate(-90)")
+.attr("y", 0 - margin.left)
+.attr("x",0 - (height / 2))
+.attr("dy", "1em")
+.style("text-anchor", "middle")
+.text("Temperture (Kelvin)");
+
+
+
+
+g.append("path")
+.datum(data).attr("fill", "none")
+.attr("stroke", "steelblue")
+.attr("stroke-linejoin", "round")
+.attr("stroke-linecap", "round")
+.attr("stroke-width", 1.5)
+.attr("d", line);
+}
+
+
+
+</script>
+
+</body>
+</html>
